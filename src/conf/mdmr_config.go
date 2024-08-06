@@ -27,5 +27,7 @@ package mdmr_config
 	}
 
 	type SoftwareConfigurations struct {
+		SourcePrefix string
+		DestinationPrefix string
 		Threads int
 	}
