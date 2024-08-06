@@ -1,3 +1,3 @@
-module github.com/sahatsawats/MySQL-Data-Migration-and-Renaming
+module MDMR
 
 go 1.21.6
