@@ -29,5 +29,8 @@ package mdmr_config
 	type SoftwareConfigurations struct {
 		SourcePrefix string
 		DestinationPrefix string
-		Threads int
+		DumpThreads int
+		RestoreThreads int
+		// stagingDirectory: /data/path
+		StagingDirectory string
 	}

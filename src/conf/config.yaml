@@ -1,0 +1,18 @@
+server:
+  sourceAddress: ""
+  destinationAddress: ""
+
+database:
+  sourceDBUser: ""
+  sourceDBPassword: ""
+  destinationDBUser: "user"
+  destinationDBPassword: "password"
+
+logger:
+  logDirectory: "/path/to/logs"
+  logFileName: "app.log"
+
+mdmr:
+  sourcePrefix: "prefix1"
+  destinationPrefix: "prefix2"
+  threads: 4
