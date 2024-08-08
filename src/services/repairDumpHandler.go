@@ -58,7 +58,8 @@ func (r *RepairHandler) run() {
 			cmd := exec.Command(
 				"mysqlsh", "-h", repairTask.MySQLCredentials.Host, "-P", repairTask.MySQLCredentials.Port,
 				"-u", repairTask.MySQLCredentials.User,
-				fmt.Sprintf("-p'%s'", repairTask.MySQLCredentials.Password),
+				fmt.Sprintf("-p%s", repairTask.MySQLCredentials.Password),
+				"--js",
 				"-e", fmt.Sprintf("util.dumpSchemas(['%s'], '%s', {threads: 4})", repairTask.DatabaseName, stagingPath))
 
 			err := cmd.Run()

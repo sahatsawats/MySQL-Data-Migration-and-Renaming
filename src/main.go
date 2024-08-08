@@ -153,7 +153,7 @@ func dumpSchemaByHost(id int, wg *sync.WaitGroup, host string, conf *models.Conf
 				cmd := exec.Command(
 					"mysqlsh", "-h", databaseCredentials.Host, "-P", databaseCredentials.Port,
 					"-u", databaseCredentials.User,
-					fmt.Sprintf("-p'%s'", databaseCredentials.Password),
+					fmt.Sprintf("-p%s", databaseCredentials.Password),
 					"-e", fmt.Sprintf("util.dumpSchemas(['%s'], '%s', {threads: 4})", databaseName, stagingFileName))
 
 				err := cmd.Run()

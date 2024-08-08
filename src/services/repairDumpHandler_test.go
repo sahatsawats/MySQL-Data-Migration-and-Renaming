@@ -54,10 +54,10 @@ func TestRepairHandler(t *testing.T) {
 		}
 
 
-		expectedDirectory := filepath.Join(tmpDir,"admin_mtls_biz_002-staging_repair")
+		expectedDirectory := filepath.Join(tmpDir,"admin_mtls_biz_002-staging-repair")
 
 		if !isDirectoryExists(expectedDirectory){
-			t.Errorf("Error from Match function: %s", err)
+			t.Errorf("Error Does not found the directory: %s", expectedDirectory)
 		}
 		
 	case <-time.After(2 * time.Second):
@@ -70,5 +70,5 @@ func TestRepairHandler(t *testing.T) {
 func isDirectoryExists(filePath string) bool {
 	_, err := os.Stat(filePath)
 
-	return os.IsNotExist(err)
+	return !os.IsNotExist(err)
 }
