@@ -24,8 +24,6 @@ package models
 	type LoggerConfigurations struct {
 		LogDirectory string
 		LogFileName string
-		RepairLogDirectory string
-		RepairLogFileName string
 	}
 
 	type SoftwareConfigurations struct {

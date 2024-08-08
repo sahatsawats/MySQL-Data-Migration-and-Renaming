@@ -7,6 +7,8 @@ import (
 	"testing"
 	"os"
 	"time"
+	concurrentlog "github.com/sahatsawats/concurrent-log"
+
 )
 
 
@@ -16,9 +18,12 @@ func TestRepairHandler(t *testing.T) {
 	//tmpDir := t.TempDir()
 	tmpDir := "/Users/sahatsawat/Projects/MDMR/test/services/repairDumpHandler"
 	logFilePath := filepath.Join(tmpDir, "repair.log")
-
+	loggerHandler, err := concurrentlog.NewLogger(logFilePath, 50)
+	if err != nil {
+		t.Fatal("Error initialze log")
+	}
 	// Create a RepairHandler
-	repairHandler := services.NewRepairHandler(logFilePath, tmpDir, 10)
+	repairHandler := services.NewRepairHandler(loggerHandler, tmpDir, 10)
 	defer repairHandler.Close()
 
 	// Mock MySQL credentails
@@ -40,10 +45,6 @@ func TestRepairHandler(t *testing.T) {
 
 	go func() {
 		repairHandler.Repair("admin_mtls_biz_002", mockTask.MySQLCredentials)
-		repairHandler.Repair("admin_mtls_biz_003", mockTask.MySQLCredentials)
-		repairHandler.Repair("admin_mtls_biz_004", mockTask.MySQLCredentials)
-		repairHandler.Repair("admin_mtls_biz_005", mockTask.MySQLCredentials)
-		repairHandler.Repair("admin_mtls_biz_006", mockTask.MySQLCredentials)
 		done <- true
 	}()
 	

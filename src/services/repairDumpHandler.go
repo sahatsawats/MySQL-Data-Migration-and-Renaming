@@ -3,16 +3,14 @@ package services
 import (
 	"MDMR/src/models"
 	"fmt"
-	"log"
 	"os/exec"
 	"path/filepath"
 	"sync"
-
-	"github.com/natefinch/lumberjack"
+	concurrentlog "github.com/sahatsawats/concurrent-log"
 )
 
 type RepairHandler struct {
-	stdLog           *log.Logger
+	stdLog           *concurrentlog.Logger
 	repairChan       chan models.RepairTask
 	done             chan struct{}
 	repairStagingDir string
@@ -20,20 +18,11 @@ type RepairHandler struct {
 }
 
 // TODO: Construct the RepairHandler
-func NewRepairHandler(logFilePath string, stagingDir string, bufferSize int) *RepairHandler {
-	// Create a logger instance
-	repairLogger := &lumberjack.Logger{
-		Filename:   logFilePath,
-		MaxSize:    10,
-		MaxBackups: 0,
-		MaxAge:     28,
-	}
-
-	stdLogger := log.New(repairLogger, "RepairHandles: ", log.LstdFlags)
+func NewRepairHandler(logger *concurrentlog.Logger, stagingDir string, bufferSize int) *RepairHandler {
 
 	// Create RepairHandler object
 	repairObject := &RepairHandler{
-		stdLog:              stdLogger,
+		stdLog:              logger,
 		repairChan:       make(chan models.RepairTask, bufferSize),
 		done:             make(chan struct{}),
 		repairStagingDir: stagingDir,
@@ -52,7 +41,7 @@ func (r *RepairHandler) run() {
 	for {
 		select {
 		case repairTask := <-r.repairChan:
-			r.stdLog.Printf("Starting repair task from database: %s", repairTask.DatabaseName)
+			r.stdLog.Log("INFO", fmt.Sprintf("[Repair-Handler] Starting repair task from database: %s", repairTask.DatabaseName))
 			// <database_name>-staging-repair
 			stagingFileName := fmt.Sprintf("%s-staging-repair", repairTask.DatabaseName)
 			// Map the staging file name with path
@@ -66,9 +55,9 @@ func (r *RepairHandler) run() {
 
 			err := cmd.Run()
 			if err != nil {
-				r.stdLog.Printf("Failed to retry database name: %s with error: %v \n", repairTask.DatabaseName, err)
+				r.stdLog.Log("ERROR", fmt.Sprintf("[Repair-Handler] Failed to retry database name: %s with error: %v", repairTask.DatabaseName, err))
 			} else {
-				r.stdLog.Printf("Completed retry database name: %s from %s \n", repairTask.DatabaseName, repairTask.MySQLCredentials.Host)
+				r.stdLog.Log("INFO", fmt.Sprintf("[Repair-Handler] Completed retry database name: %s from %s", repairTask.DatabaseName, repairTask.MySQLCredentials.Host))
 			}
 			r.wg.Done()
 		case <-r.done:
@@ -80,7 +69,7 @@ func (r *RepairHandler) run() {
 // TODO: Act as API for send the repairing request to object
 func (r *RepairHandler) Repair(databaseName string, credentials models.MySQLCredentials) {
 	r.wg.Add(1)
-	r.stdLog.Printf("Receiving repair task: %s from %s \n", databaseName, credentials.Host)
+	r.stdLog.Log("INFO", fmt.Sprintf("[Repair-Handler] Receiving repair task: %s from %s", databaseName, credentials.Host))
 	// Create a repairTask with databaseName and Credentails
 	repairTask := models.RepairTask{
 		DatabaseName:     databaseName,

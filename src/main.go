@@ -154,7 +154,7 @@ func dumpSchemaByHost(id int, wg *sync.WaitGroup, host string, conf *models.Conf
 					"mysqlsh", "-h", databaseCredentials.Host, "-P", databaseCredentials.Port,
 					"-u", databaseCredentials.User,
 					fmt.Sprintf("-p%s", databaseCredentials.Password),
-					//"--js",
+					"--js",
 					"-e", fmt.Sprintf("util.dumpSchemas(['%s'], '%s', {threads: 4})", databaseName, stagingFileName))
 
 				err := cmd.Run()
@@ -196,8 +196,9 @@ func main() {
 	fmt.Println("Complete create logging thread. Starting logging...")
 
 	// Create RepairHandler
-	repairStaggingFile := filepath.Join(mdmr_config.MDMR.RepairStagingDirectory, mdmr_config.Logger.RepairLogFileName)
-	repairLogPath := filepath.Join(mdmr_config.Logger.RepairLogDirectory, mdmr_config.Logger.RepairLogFileName)
+	//repairStaggingFile := filepath.Join(mdmr_config.MDMR.RepairStagingDirectory, mdmr_config.Logger.RepairLogFileName)
+	// GROUP ERROR LOG AND SYSTEM LOG INTO 1 LOG
+	//repairLogPath := filepath.Join(mdmr_config.Logger.RepairLogDirectory, mdmr_config.Logger.RepairLogFileName)
 	// Create repairStagging is does not exist
 	err = makeDirectory(mdmr_config.MDMR.RepairStagingDirectory)
 	if err != nil {
@@ -206,7 +207,7 @@ func main() {
 	}
 	// Initialize RepairHandler
 	logHandler.Log("INFO", "Starting repair handlers...")
-	repairHandler := services.NewRepairHandler(repairLogPath, repairStaggingFile, 50)
+	repairHandler := services.NewRepairHandler(logHandler, mdmr_config.MDMR.RepairStagingDirectory, 50)
 	logHandler.Log("INFO", "Completed create repair handlers.")
 
 
@@ -233,10 +234,12 @@ func main() {
 	programElaspedTime := time.Since(programStartTime)
 
 	logHandler.Log("INFO", fmt.Sprintf("Complete the dumpSchema process from all host with time usages: %v", programElaspedTime))
-	time.Sleep(time.Second * 5)
 	// Close the processes
 	logHandler.Log("INFO", "Waiting for repair to clear the backlog...")
 	repairHandler.Close()
+	logHandler.Log("INFO", "Complete the process of clearing the backlog.")
+
+	time.Sleep(time.Second * 5)
 	logHandler.Close()
 	
 }

@@ -11,8 +11,6 @@ database:
 logger:
   logdirectory: "/Users/sahatsawat/Projects/MDMR/test/main/logs"
   logfilename: "app.log"
-  repairLogdirectory: "/Users/sahatsawat/Projects/MDMR/test/main/retry-log"
-  repairLogfilename: "repair.log"
 
 mdmr:
   sourceprefix: "admin_mtls_biz_"
