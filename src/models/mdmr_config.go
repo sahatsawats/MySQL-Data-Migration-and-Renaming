@@ -1,4 +1,4 @@
-package mdmr_config
+package models
 
 	type Configurations struct {
 		Server		ServerConfigurations
@@ -24,6 +24,8 @@ package mdmr_config
 	type LoggerConfigurations struct {
 		LogDirectory string
 		LogFileName string
+		RepairLogDirectory string
+		RepairLogFileName string
 	}
 
 	type SoftwareConfigurations struct {
@@ -33,4 +35,7 @@ package mdmr_config
 		RestoreThreads int
 		// stagingDirectory: /data/path
 		StagingDirectory string
+		// RepairStaging for repairing process
+		RepairStagingDirectory string
+
 	}
