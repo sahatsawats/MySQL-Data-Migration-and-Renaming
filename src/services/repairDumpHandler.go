@@ -6,15 +6,17 @@ import (
 	"log"
 	"os/exec"
 	"path/filepath"
+	"sync"
 
 	"github.com/natefinch/lumberjack"
 )
 
 type RepairHandler struct {
-	log              *log.Logger
+	stdLog           *log.Logger
 	repairChan       chan models.RepairTask
 	done             chan struct{}
 	repairStagingDir string
+	wg				sync.WaitGroup
 }
 
 // TODO: Construct the RepairHandler
@@ -31,7 +33,7 @@ func NewRepairHandler(logFilePath string, stagingDir string, bufferSize int) *Re
 
 	// Create RepairHandler object
 	repairObject := &RepairHandler{
-		log:              stdLogger,
+		stdLog:              stdLogger,
 		repairChan:       make(chan models.RepairTask, bufferSize),
 		done:             make(chan struct{}),
 		repairStagingDir: stagingDir,
@@ -50,7 +52,7 @@ func (r *RepairHandler) run() {
 	for {
 		select {
 		case repairTask := <-r.repairChan:
-			r.log.Printf("Starting repair task from database: %s", repairTask.DatabaseName)
+			r.stdLog.Printf("Starting repair task from database: %s", repairTask.DatabaseName)
 			// <database_name>-staging-repair
 			stagingFileName := fmt.Sprintf("%s-staging-repair", repairTask.DatabaseName)
 			// Map the staging file name with path
@@ -64,10 +66,11 @@ func (r *RepairHandler) run() {
 
 			err := cmd.Run()
 			if err != nil {
-				r.log.Printf("Failed to retry database name: %s with error: %v \n", repairTask.DatabaseName, err)
+				r.stdLog.Printf("Failed to retry database name: %s with error: %v \n", repairTask.DatabaseName, err)
 			} else {
-				r.log.Printf("Completed retry database name: %s from %s \n", repairTask.DatabaseName, repairTask.MySQLCredentials.Host)
+				r.stdLog.Printf("Completed retry database name: %s from %s \n", repairTask.DatabaseName, repairTask.MySQLCredentials.Host)
 			}
+			r.wg.Done()
 		case <-r.done:
 			return
 		}
@@ -76,7 +79,8 @@ func (r *RepairHandler) run() {
 
 // TODO: Act as API for send the repairing request to object
 func (r *RepairHandler) Repair(databaseName string, credentials models.MySQLCredentials) {
-	r.log.Printf("Receiving repair task: %s from %s \n", databaseName, credentials.Host)
+	r.wg.Add(1)
+	r.stdLog.Printf("Receiving repair task: %s from %s \n", databaseName, credentials.Host)
 	// Create a repairTask with databaseName and Credentails
 	repairTask := models.RepairTask{
 		DatabaseName:     databaseName,
@@ -88,6 +92,8 @@ func (r *RepairHandler) Repair(databaseName string, credentials models.MySQLCred
 
 // TODO: Close the buffer channel
 func (r *RepairHandler) Close() {
+	r.wg.Wait()
 	close(r.done)
 	close(r.repairChan)
+	
 }

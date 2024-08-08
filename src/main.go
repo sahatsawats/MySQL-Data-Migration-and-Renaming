@@ -154,12 +154,13 @@ func dumpSchemaByHost(id int, wg *sync.WaitGroup, host string, conf *models.Conf
 					"mysqlsh", "-h", databaseCredentials.Host, "-P", databaseCredentials.Port,
 					"-u", databaseCredentials.User,
 					fmt.Sprintf("-p%s", databaseCredentials.Password),
+					//"--js",
 					"-e", fmt.Sprintf("util.dumpSchemas(['%s'], '%s', {threads: 4})", databaseName, stagingFileName))
 
 				err := cmd.Run()
 				if err != nil {
 					logHandler.Log("ERROR", fmt.Sprintf("Failed to execute dumpSchemas command from host: %s with err_statement: %v", databaseCredentials.Host, err))
-					logHandler.Log("WARNING", "Sending the repair task to repair handlers...")
+					logHandler.Log("WARNING", fmt.Sprintf("Sending the repair task for %s to repair handlers...", databaseName))
 					repairHandler.Repair(databaseName, *databaseCredentials)
 				}
 			}
@@ -177,8 +178,15 @@ func main() {
 	mdmr_config := readingConfigurationFile()
 	fmt.Println("Complete reading configuration file.")
 	fmt.Println("Starting logging thread...")
+
+	// Create log path if does not exists
+	err := makeDirectory(mdmr_config.Logger.LogDirectory)
+	if err != nil {
+		log.Fatalf("Failed to create directory: %v", err)
+		os.Exit(1)
+	}
+
 	logPath := filepath.Join(mdmr_config.Logger.LogDirectory, mdmr_config.Logger.LogFileName)
-	repairLogPath := filepath.Join(mdmr_config.Logger.RepairLogDirectory, mdmr_config.Logger.RepairLogFileName)
 	// Create concurrent logger
 	logHandler, err := concurrentlog.NewLogger(logPath, 50)
 	if err != nil {
@@ -189,6 +197,7 @@ func main() {
 
 	// Create RepairHandler
 	repairStaggingFile := filepath.Join(mdmr_config.MDMR.RepairStagingDirectory, mdmr_config.Logger.RepairLogFileName)
+	repairLogPath := filepath.Join(mdmr_config.Logger.RepairLogDirectory, mdmr_config.Logger.RepairLogFileName)
 	// Create repairStagging is does not exist
 	err = makeDirectory(mdmr_config.MDMR.RepairStagingDirectory)
 	if err != nil {
@@ -199,6 +208,7 @@ func main() {
 	logHandler.Log("INFO", "Starting repair handlers...")
 	repairHandler := services.NewRepairHandler(repairLogPath, repairStaggingFile, 50)
 	logHandler.Log("INFO", "Completed create repair handlers.")
+
 
 	// Create staging directory for holding the dump file
 	err = makeDirectory(mdmr_config.MDMR.StagingDirectory)
@@ -218,11 +228,15 @@ func main() {
 		go dumpSchemaByHost(i, &wg, sourceHostList[i-1], mdmr_config, logHandler, repairHandler)
 	}
 
+	
 	wg.Wait()
 	programElaspedTime := time.Since(programStartTime)
 
 	logHandler.Log("INFO", fmt.Sprintf("Complete the dumpSchema process from all host with time usages: %v", programElaspedTime))
+	time.Sleep(time.Second * 5)
 	// Close the processes
-	logHandler.Close()
+	logHandler.Log("INFO", "Waiting for repair to clear the backlog...")
 	repairHandler.Close()
+	logHandler.Close()
+	
 }

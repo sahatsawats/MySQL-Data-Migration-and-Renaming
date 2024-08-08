@@ -13,8 +13,8 @@ import (
 
 func TestRepairHandler(t *testing.T) {
 	// Temporary directory for testing
-	tmpDir := t.TempDir()
-	//tmpDir := "/Users/sahatsawat/Projects/MDMR/test/services/repairDumpHandler"
+	//tmpDir := t.TempDir()
+	tmpDir := "/Users/sahatsawat/Projects/MDMR/test/services/repairDumpHandler"
 	logFilePath := filepath.Join(tmpDir, "repair.log")
 
 	// Create a RepairHandler
@@ -39,7 +39,11 @@ func TestRepairHandler(t *testing.T) {
 	done := make(chan bool)
 
 	go func() {
-		repairHandler.Repair(mockTask.DatabaseName, mockTask.MySQLCredentials)
+		repairHandler.Repair("admin_mtls_biz_002", mockTask.MySQLCredentials)
+		repairHandler.Repair("admin_mtls_biz_003", mockTask.MySQLCredentials)
+		repairHandler.Repair("admin_mtls_biz_004", mockTask.MySQLCredentials)
+		repairHandler.Repair("admin_mtls_biz_005", mockTask.MySQLCredentials)
+		repairHandler.Repair("admin_mtls_biz_006", mockTask.MySQLCredentials)
 		done <- true
 	}()
 	

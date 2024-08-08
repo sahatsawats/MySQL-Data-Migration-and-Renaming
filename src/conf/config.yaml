@@ -1,18 +1,23 @@
 server:
-  sourceAddress: ""
-  destinationAddress: ""
+  sourceaddress: "213.35.99.8:3306"
+  destinationaddress: ""
 
 database:
-  sourceDBUser: ""
-  sourceDBPassword: ""
-  destinationDBUser: "user"
-  destinationDBPassword: "password"
+  sourcedbuser: "root"
+  sourcedbpassword: "M@Tc#2024"
+  destinationdbuser: "user"
+  destinationdbpassword: "password"
 
 logger:
-  logDirectory: "/path/to/logs"
-  logFileName: "app.log"
+  logdirectory: "/Users/sahatsawat/Projects/MDMR/test/main/logs"
+  logfilename: "app.log"
+  repairLogdirectory: "/Users/sahatsawat/Projects/MDMR/test/main/retry-log"
+  repairLogfilename: "repair.log"
 
 mdmr:
-  sourcePrefix: "prefix1"
-  destinationPrefix: "prefix2"
-  threads: 4
+  sourceprefix: "admin_mtls_biz_"
+  destinationprefix: "prefix2"
+  dumpthreads: 4
+  restorethreads: 4
+  stagingdirectory: "/Users/sahatsawat/Projects/MDMR/test/main/staging"
+  repairstagingdirectory: "/Users/sahatsawat/Projects/MDMR/test/main/repair-staging"
