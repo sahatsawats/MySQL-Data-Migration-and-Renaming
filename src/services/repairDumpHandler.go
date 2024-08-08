@@ -82,6 +82,7 @@ func (r *RepairHandler) Repair(databaseName string, credentials models.MySQLCred
 	r.repairChan <- repairTask
 }
 
+//TODO: Close the buffer channel
 func (r *RepairHandler) Close() {
 	close(r.done)
 	close(r.repairChan)

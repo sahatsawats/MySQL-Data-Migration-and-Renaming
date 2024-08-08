@@ -12,6 +12,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+
 	_ "github.com/go-sql-driver/mysql"
 
 	concurrentlog "github.com/sahatsawats/concurrent-log"
@@ -59,22 +60,21 @@ func readingConfigurationFile() *models.Configurations {
 	return &conf
 }
 
-
 func dumpSchemaByHost(id int, wg *sync.WaitGroup, host string, conf *models.Configurations, logHandler *concurrentlog.Logger, repairHandler *services.RepairHandler) {
 	// set postpone to issued the done signal to wait group
 	defer wg.Done()
-	
+
 	// Split the ipadress and port out of string
 	hostCredentials := strings.Split(host, ":")
 
 	// Create databaseCredentials Object
 	databaseCredentials := &models.MySQLCredentials{
-		Host: hostCredentials[0],
-		Port: hostCredentials[1],
-		User: conf.Database.SourceDBUser,
+		Host:     hostCredentials[0],
+		Port:     hostCredentials[1],
+		User:     conf.Database.SourceDBUser,
 		Password: conf.Database.SourceDBPassword,
 	}
-	
+
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/", databaseCredentials.User, databaseCredentials.Password, databaseCredentials.Host, databaseCredentials.Port)
 
 	// Preparing the MySQL Connection.
@@ -107,7 +107,7 @@ func dumpSchemaByHost(id int, wg *sync.WaitGroup, host string, conf *models.Conf
 	// Loop over the results
 	var err_enq int
 	for rows.Next() {
-		var databaseName string // Declare variable for holding the results
+		var databaseName string        // Declare variable for holding the results
 		err = rows.Scan(&databaseName) // Map the value of results to variable
 		if err != nil {
 			logHandler.Log("ERROR", fmt.Sprintf("Failed to read result: %v", err))
@@ -151,15 +151,15 @@ func dumpSchemaByHost(id int, wg *sync.WaitGroup, host string, conf *models.Conf
 
 				// mysqlsh -h <IP> -P <PORT> -u <user> -p'<pwd>' -e "util.dumpSchemas(['<database_name>'], {thteads: 4})"
 				cmd := exec.Command(
-					"mysqlsh", "-h", databaseCredentials.Host, "-P", databaseCredentials.Port, 
-					"-u", databaseCredentials.User, 
-					fmt.Sprintf("-p'%s'", databaseCredentials.Password), 
+					"mysqlsh", "-h", databaseCredentials.Host, "-P", databaseCredentials.Port,
+					"-u", databaseCredentials.User,
+					fmt.Sprintf("-p'%s'", databaseCredentials.Password),
 					"-e", fmt.Sprintf("util.dumpSchemas(['%s'], '%s', {threads: 4})", databaseName, stagingFileName))
 
 				err := cmd.Run()
 				if err != nil {
 					logHandler.Log("ERROR", fmt.Sprintf("Failed to execute dumpSchemas command from host: %s with err_statement: %v", databaseCredentials.Host, err))
-					logHandler.Log("WARNING", fmt.Sprintf("Sending the repair task to repair handlers..."))
+					logHandler.Log("WARNING", "Sending the repair task to repair handlers...")
 					repairHandler.Repair(databaseName, *databaseCredentials)
 				}
 			}
@@ -170,7 +170,6 @@ func dumpSchemaByHost(id int, wg *sync.WaitGroup, host string, conf *models.Conf
 	dumpSchemaElaspedTime := time.Since(dumpSchemaStartTime)
 	logHandler.Log("INFO", fmt.Sprintf("[thread:%d] Completed execute dumpSchemas command from host: %s with time usages: %v", id, databaseCredentials.Host, dumpSchemaElaspedTime))
 }
-
 
 func main() {
 	programStartTime := time.Now()
@@ -185,9 +184,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to initialize log handler: %v", err)
 	}
-
-	fmt.Println("Complete create logging thread. Starting logging...")
 	
+	fmt.Println("Complete create logging thread. Starting logging...")
+
 	// Create RepairHandler
 	repairStaggingFile := filepath.Join(mdmr_config.MDMR.RepairStagingDirectory, mdmr_config.Logger.RepairLogFileName)
 	// Create repairStagging is does not exist
@@ -207,7 +206,7 @@ func main() {
 		logHandler.Log("ERROR", fmt.Sprintf("Failed to create directory: %v", err))
 		os.Exit(1)
 	}
-	// Spliting the source hosts to list of host
+	// Spliting the string of source hosts to list of host
 	sourceHostList := strings.Split(mdmr_config.Server.SourceAddress, ",")
 	logHandler.Log("INFO", fmt.Sprintf("Source Host: %s, total: %d", sourceHostList, len(sourceHostList)))
 
@@ -223,4 +222,7 @@ func main() {
 	programElaspedTime := time.Since(programStartTime)
 
 	logHandler.Log("INFO", fmt.Sprintf("Complete the dumpSchema process from all host with time usages: %v", programElaspedTime))
+	// Close the processes
+	logHandler.Close()
+	repairHandler.Close()
 }
