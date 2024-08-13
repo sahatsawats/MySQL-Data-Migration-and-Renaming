@@ -43,7 +43,7 @@ func (r *RepairHandler) run() {
 		case repairTask := <-r.repairChan:
 			r.stdLog.Log("INFO", fmt.Sprintf("[Repair-Handler] Starting repair task from database: %s", repairTask.DatabaseName))
 			// <database_name>-staging-repair
-			stagingFileName := fmt.Sprintf("%s-staging-repair", repairTask.DatabaseName)
+			stagingFileName := fmt.Sprintf("%s-staging", repairTask.DatabaseName)
 			// Map the staging file name with path
 			stagingPath := filepath.Join(r.repairStagingDir, stagingFileName)
 			cmd := exec.Command(

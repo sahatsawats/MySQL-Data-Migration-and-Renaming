@@ -129,8 +129,6 @@ func dumpSchemaByHost(id int, wg *sync.WaitGroup, host string, conf *models.Conf
 	var wg_dump sync.WaitGroup
 	dumpThreads := conf.MDMR.DumpThreads
 
-	//TODO-LIST: Create time consume
-
 	dumpSchemaStartTime := time.Now()
 
 	for i := 0; i < dumpThreads; i++ {
@@ -192,13 +190,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to initialize log handler: %v", err)
 	}
-	
+
 	fmt.Println("Complete create logging thread. Starting logging...")
 
-	// Create RepairHandler
-	//repairStaggingFile := filepath.Join(mdmr_config.MDMR.RepairStagingDirectory, mdmr_config.Logger.RepairLogFileName)
-	// GROUP ERROR LOG AND SYSTEM LOG INTO 1 LOG
-	//repairLogPath := filepath.Join(mdmr_config.Logger.RepairLogDirectory, mdmr_config.Logger.RepairLogFileName)
 	// Create repairStagging is does not exist
 	err = makeDirectory(mdmr_config.MDMR.RepairStagingDirectory)
 	if err != nil {
@@ -209,7 +203,6 @@ func main() {
 	logHandler.Log("INFO", "Starting repair handlers...")
 	repairHandler := services.NewRepairHandler(logHandler, mdmr_config.MDMR.RepairStagingDirectory, 50)
 	logHandler.Log("INFO", "Completed create repair handlers.")
-
 
 	// Create staging directory for holding the dump file
 	err = makeDirectory(mdmr_config.MDMR.StagingDirectory)
@@ -229,7 +222,6 @@ func main() {
 		go dumpSchemaByHost(i, &wg, sourceHostList[i-1], mdmr_config, logHandler, repairHandler)
 	}
 
-	
 	wg.Wait()
 	programElaspedTime := time.Since(programStartTime)
 
@@ -241,5 +233,5 @@ func main() {
 
 	time.Sleep(time.Second * 5)
 	logHandler.Close()
-	
+
 }

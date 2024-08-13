@@ -1,12 +1,9 @@
 server:
-  sourceaddress: "213.35.99.8:3306"
-  destinationaddress: ""
+  sourceaddress: ""
 
 database:
   sourcedbuser: "root"
   sourcedbpassword: "M@Tc#2024"
-  destinationdbuser: "user"
-  destinationdbpassword: "password"
 
 logger:
   logdirectory: "/Users/sahatsawat/Projects/MDMR/test/main/logs"
@@ -14,8 +11,6 @@ logger:
 
 mdmr:
   sourceprefix: "admin_mtls_biz_"
-  destinationprefix: "prefix2"
   dumpthreads: 4
-  restorethreads: 4
   stagingdirectory: "/Users/sahatsawat/Projects/MDMR/test/main/staging"
   repairstagingdirectory: "/Users/sahatsawat/Projects/MDMR/test/main/repair-staging"

@@ -10,15 +10,11 @@ package models
 	type ServerConfigurations struct {
 		// SourceAddress: "ipaddress1:port1, ipaddress2:port2,..."
 		SourceAddress string
-		// DestinationAddress: "ipaddress:port"
-		DestinationAddress string
 	}
 
 	type DatabaseConfigurations struct {
 		SourceDBUser string
 		SourceDBPassword string
-		DestinationDBUser string
-		DestinationDBPassword string
 	}
 
 	type LoggerConfigurations struct {
@@ -28,12 +24,9 @@ package models
 
 	type SoftwareConfigurations struct {
 		SourcePrefix string
-		DestinationPrefix string
 		DumpThreads int
-		RestoreThreads int
 		// stagingDirectory: /data/path
 		StagingDirectory string
 		// RepairStaging for repairing process
 		RepairStagingDirectory string
-
 	}
